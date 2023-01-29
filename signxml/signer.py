@@ -1,13 +1,14 @@
+from abc import ABC, abstractmethod
 from base64 import b64encode
 from dataclasses import dataclass, replace
 from typing import List, Optional, Union
 
+from OpenSSL.crypto import FILETYPE_PEM, X509, dump_certificate
 from cryptography.hazmat.primitives.asymmetric import dsa, ec, rsa, utils
 from cryptography.hazmat.primitives.asymmetric.padding import MGF1, PSS, PKCS1v15
 from cryptography.hazmat.primitives.hmac import HMAC
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from lxml.etree import Element, SubElement, _Element
-from OpenSSL.crypto import FILETYPE_PEM, X509, dump_certificate
 
 from .algorithms import (
     CanonicalizationMethod,
@@ -56,6 +57,12 @@ class SignatureReference:
     When using exclusive XML canonicalization, use this parameter to provide a list of XML namespace prefixes whose
     declarations should be preserved when canonicalizing the reference value (**InclusiveNamespaces PrefixList**).
     """
+
+
+class RemoteSignature(ABC):
+    @abstractmethod
+    def sign(self, signed_info_c14n, padding, algorithm):
+        raise NotImplementedError
 
 
 class XMLSigner(XMLSignatureProcessor):
@@ -126,7 +133,7 @@ class XMLSigner(XMLSignatureProcessor):
         self,
         data,
         *,
-        key: Optional[Union[str, bytes, rsa.RSAPrivateKey, dsa.DSAPrivateKey, ec.EllipticCurvePrivateKey]] = None,
+        key: Optional[Union[str, bytes, RemoteSignature, rsa.RSAPrivateKey, dsa.DSAPrivateKey, ec.EllipticCurvePrivateKey]] = None,
         passphrase: Optional[bytes] = None,
         cert: Optional[Union[str, List[str], List[X509]]] = None,
         reference_uri: Optional[Union[str, List[str], List[SignatureReference]]] = None,
@@ -268,7 +275,10 @@ class XMLSigner(XMLSignatureProcessor):
                 int_len = bits_to_bytes_unit(signing_settings.key.key_size)
                 signature = long_to_bytes(r, blocksize=int_len) + long_to_bytes(s, blocksize=int_len)
 
-            signature_value_node.text = b64encode(signature).decode()
+            if isinstance(signature, str):
+                signature_value_node.text = signature
+            else:
+                signature_value_node.text = b64encode(signature).decode()
         else:
             raise NotImplementedError()
 

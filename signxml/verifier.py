@@ -325,6 +325,7 @@ class XMLVerifier(XMLSignatureProcessor):
             self.id_attributes = (id_attribute,)
 
         root = self.get_root(data)
+        #TODO: fixme.... seems to return the root tag
         signature_ref = self._get_signature(root)
 
         # HACK: deep copy won't keep root's namespaces

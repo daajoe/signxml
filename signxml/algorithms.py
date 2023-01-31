@@ -88,7 +88,9 @@ class SignatureMethod(FragmentLookupMixin, InvalidInputErrorMixin, Enum):
     the XML Signature 1.1 standard for details.
     """
 
-    RSA_SHA256 = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"
+    # RSA_SHA256 = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"
+    #TODO: JKF: temporary hack for validation...
+    RSA_SHA256 = "http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha256"
     """
     The RSASSA-PKCS1-v1_5 algorithm described in RFC 3447. This is the default, most widely supported signature method.
     """

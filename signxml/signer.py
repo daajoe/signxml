@@ -101,11 +101,11 @@ class XMLSigner(XMLSignatureProcessor):
     """
 
     def __init__(
-        self,
-        method: SignatureConstructionMethod = SignatureConstructionMethod.enveloped,
-        signature_algorithm: Union[SignatureMethod, str] = SignatureMethod.RSA_SHA256,
-        digest_algorithm: Union[DigestAlgorithm, str] = DigestAlgorithm.SHA256,
-        c14n_algorithm: Union[CanonicalizationMethod, str] = CanonicalizationMethod.CANONICAL_XML_1_1,
+            self,
+            method: SignatureConstructionMethod = SignatureConstructionMethod.enveloped,
+            signature_algorithm: Union[SignatureMethod, str] = SignatureMethod.RSA_SHA256,
+            digest_algorithm: Union[DigestAlgorithm, str] = DigestAlgorithm.SHA256,
+            c14n_algorithm: Union[CanonicalizationMethod, str] = CanonicalizationMethod.CANONICAL_XML_1_1,
     ):
         if method is None or method not in SignatureConstructionMethod:
             raise InvalidInput(f"Unknown signature construction method {method}")
@@ -130,19 +130,20 @@ class XMLSigner(XMLSignatureProcessor):
             raise InvalidInput(msg)
 
     def sign(
-        self,
-        data,
-        *,
-        key: Optional[Union[str, bytes, RemoteSignature, rsa.RSAPrivateKey, dsa.DSAPrivateKey, ec.EllipticCurvePrivateKey]] = None,
-        passphrase: Optional[bytes] = None,
-        cert: Optional[Union[str, List[str], List[X509]]] = None,
-        reference_uri: Optional[Union[str, List[str], List[SignatureReference]]] = None,
-        key_name: Optional[str] = None,
-        key_info: Optional[_Element] = None,
-        id_attribute: Optional[str] = None,
-        always_add_key_value: bool = False,
-        inclusive_ns_prefixes: Optional[List[str]] = None,
-        signature_properties: Optional[Union[_Element, List[_Element]]] = None,
+            self,
+            data,
+            *,
+            key: Optional[Union[
+                str, bytes, RemoteSignature, rsa.RSAPrivateKey, dsa.DSAPrivateKey, ec.EllipticCurvePrivateKey]] = None,
+            passphrase: Optional[bytes] = None,
+            cert: Optional[Union[str, List[str], List[X509]]] = None,
+            reference_uri: Optional[Union[str, List[str], List[SignatureReference]]] = None,
+            key_name: Optional[str] = None,
+            key_info: Optional[_Element] = None,
+            id_attribute: Optional[str] = None,
+            always_add_key_value: bool = False,
+            inclusive_ns_prefixes: Optional[List[str]] = None,
+            signature_properties: Optional[Union[_Element, List[_Element]]] = None,
     ) -> _Element:
         """
         Sign the data and return the root element of the resulting XML tree.
@@ -270,10 +271,14 @@ class XMLSigner(XMLSignatureProcessor):
             else:
                 raise NotImplementedError()
             if self.sign_alg.name.startswith("DSA_") or self.sign_alg.name.startswith("ECDSA_"):
-                # Note: The output of the DSA and ECDSA signers is a DER-encoded ASN.1 sequence of two DER integers.
-                (r, s) = utils.decode_dss_signature(signature)
-                int_len = bits_to_bytes_unit(signing_settings.key.key_size)
-                signature = long_to_bytes(r, blocksize=int_len) + long_to_bytes(s, blocksize=int_len)
+                if isinstance(key, RemoteSignature):
+                    # TODO(jkf): check if we need to add key information here for the final setup
+                    pass
+                else:
+                    # Note: The output of the DSA and ECDSA signers is a DER-encoded ASN.1 sequence of two DER integers.
+                    (r, s) = utils.decode_dss_signature(signature)
+                    int_len = bits_to_bytes_unit(signing_settings.key.key_size)
+                    signature = long_to_bytes(r, blocksize=int_len) + long_to_bytes(s, blocksize=int_len)
 
             if isinstance(signature, str):
                 signature_value_node.text = signature
@@ -462,11 +467,14 @@ class XMLSigner(XMLSignatureProcessor):
 
                 e.text = b64encode(long_to_bytes(getattr(key_params, field))).decode()
         elif self.sign_alg.name.startswith("ECDSA_"):
-            ec_key_value = SubElement(key_value, dsig11_tag("ECKeyValue"), nsmap=dict(dsig11=namespaces.dsig11))
-            named_curve = SubElement(  # noqa:F841
-                ec_key_value, dsig11_tag("NamedCurve"), URI=self.known_ecdsa_curve_oids[key.curve.name]
-            )
-            public_key = SubElement(ec_key_value, dsig11_tag("PublicKey"))
-            x = key.public_key().public_numbers().x
-            y = key.public_key().public_numbers().y
-            public_key.text = b64encode(long_to_bytes(4) + long_to_bytes(x) + long_to_bytes(y)).decode()
+            if isinstance(key, RemoteSignature):
+                pass
+            else:
+                ec_key_value = SubElement(key_value, dsig11_tag("ECKeyValue"), nsmap=dict(dsig11=namespaces.dsig11))
+                named_curve = SubElement(  # noqa:F841
+                    ec_key_value, dsig11_tag("NamedCurve"), URI=self.known_ecdsa_curve_oids[key.curve.name]
+                )
+                public_key = SubElement(ec_key_value, dsig11_tag("PublicKey"))
+                x = key.public_key().public_numbers().x
+                y = key.public_key().public_numbers().y
+                public_key.text = b64encode(long_to_bytes(4) + long_to_bytes(x) + long_to_bytes(y)).decode()

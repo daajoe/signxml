@@ -389,8 +389,6 @@ class XMLVerifier(XMLSignatureProcessor):
                 raw_signature = self._encode_dss_signature(raw_signature, signing_cert.get_pubkey().bits())
 
             try:
-                # TODO: JKF temporary hack for ECDSA validation
-                raw_signature = self._encode_dss_signature(raw_signature, signing_cert.get_pubkey().bits())
                 digest_alg_name = str(digest_algorithm_implementations[signature_alg].name)
                 openssl_verify(signing_cert, raw_signature, signed_info_c14n, digest_alg_name)
             except OpenSSLCryptoError as e:

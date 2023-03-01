@@ -88,9 +88,7 @@ class SignatureMethod(FragmentLookupMixin, InvalidInputErrorMixin, Enum):
     the XML Signature 1.1 standard for details.
     """
 
-    # RSA_SHA256 = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"
-    #TODO: JKF: temporary hack for validation...
-    RSA_SHA256 = "http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha256"
+    RSA_SHA256 = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"
     """
     The RSASSA-PKCS1-v1_5 algorithm described in RFC 3447. This is the default, most widely supported signature method.
     """
@@ -106,6 +104,9 @@ class SignatureMethod(FragmentLookupMixin, InvalidInputErrorMixin, Enum):
     ECDSA_SHA3_256 = "http://www.w3.org/2021/04/xmldsig-more#ecdsa-sha3-256"
     ECDSA_SHA3_384 = "http://www.w3.org/2021/04/xmldsig-more#ecdsa-sha3-384"
     ECDSA_SHA3_512 = "http://www.w3.org/2021/04/xmldsig-more#ecdsa-sha3-512"
+
+    ECDSA_SHA256_REMOTE = "http://www.w3.org/2001/04/xmldsig-more#remote#ecdsa-sha256"
+
     DSA_SHA256 = "http://www.w3.org/2009/xmldsig11#dsa-sha256"
     HMAC_SHA224 = "http://www.w3.org/2001/04/xmldsig-more#hmac-sha224"
     HMAC_SHA256 = "http://www.w3.org/2001/04/xmldsig-more#hmac-sha256"

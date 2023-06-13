@@ -166,12 +166,15 @@ class XAdESSigner(XAdESProcessor, XMLSigner):
         )
         for dop_annotator in self.signed_data_object_properties_annotators:
             dop_annotator(signed_data_object_properties, sig_root=sig_root, signing_settings=signing_settings)
-        self._add_reference_to_signed_info(sig_root, signed_properties)
+        self._add_reference_to_signed_info(sig_root, signed_properties, "http://uri.etsi.org/01903#SignedProperties")
         self._add_reference_to_signed_info(sig_root, key_info)
 
-    def _add_reference_to_signed_info(self, sig_root, node_to_reference):
+    def _add_reference_to_signed_info(self, sig_root, node_to_reference, element_type=None):
         signed_info = self._find(sig_root, "SignedInfo")
-        reference = SubElement(signed_info, ds_tag("Reference"), nsmap=self.namespaces)
+        if element_type:
+            reference = SubElement(signed_info, ds_tag("Reference"), Type=element_type, nsmap=self.namespaces)
+        else:
+            reference = SubElement(signed_info, ds_tag("Reference"), nsmap=self.namespaces)
         reference.set("URI", f"#{node_to_reference.get('Id')}")
         SubElement(reference, ds_tag("DigestMethod"), nsmap=self.namespaces, Algorithm=self.digest_alg.value)
         digest_value_node = SubElement(reference, ds_tag("DigestValue"), nsmap=self.namespaces)

@@ -448,6 +448,8 @@ class XMLSigner(XMLSignatureProcessor):
         """
         Add the public components of the key to the signature (see https://www.w3.org/TR/xmldsig-core2/#sec-KeyValue).
         """
+        if isinstance(key, RemoteSignature):
+            return
         key_value = SubElement(key_info_node, ds_tag("KeyValue"))
         if self.sign_alg.name.startswith("RSA_") or self.sign_alg.name.startswith("SHA"):
             rsa_key_value = SubElement(key_value, ds_tag("RSAKeyValue"))
